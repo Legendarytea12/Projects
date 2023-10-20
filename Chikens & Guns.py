@@ -39,7 +39,7 @@ class GameSprite(pygame.sprite.Sprite):
 
 
 class Player(GameSprite):
-    def __init__(self, x, y, w, h, speed, go_left,go_right, gravition, jumping, player_anim, images):
+    def __init__(self, x, y, w, h, speed, go_left,go_right, gravition, jumping, player_anim, images, jump_count, can_jump):
         super().__init__(x, y, w, h, images[0])
         player_group.add(self)
         self.rect = pygame.Rect(x, y, w, h)
@@ -50,6 +50,9 @@ class Player(GameSprite):
         self.jumping = jumping
         self.player_anim = player_anim
         self.images = []
+        self.jumping = False
+        self.jump_count = 0
+        self.can_jump = False
         for i in images:
             i = pygame.transform.scale(i, (w, h))
             self.images.append(i)
@@ -76,6 +79,14 @@ class Player(GameSprite):
             return True
         else:
             return False
+    def jump(self):
+        if not self.jumping and self.can_jump:
+            self.jumping = True
+            self.jump_count = 35
+            if self.jump_count <= 0:
+                self.jumping = False
+                if self.jump_count == 0:
+                    self.jumping = False
     def graviti(self):
         x = self.rect.x
         y = self.rect.y
@@ -87,8 +98,12 @@ class Player(GameSprite):
             else:
                 player.gravition = True
         print(self.gravition)
-        if self.gravition == True:
-            self.rect.y += 3
+        if not self.jumping:
+            if self.gravition == True:
+                self.rect.y += self.speed
+        else:
+            self.rect.y -= 1
+            self.jump_count -= 35
         for block in blocks:
             if self.collide(block):
                 self.rect.x = x
@@ -120,7 +135,7 @@ class Enemy(GameSprite):
 
 player_img = pygame.image.load("player_l1.png")
 
-player = Player(10, 50, 40, 40, 3, pygame.K_a , pygame.K_d, True, False, "right", [player_img,pygame.transform.flip(player_img, True, False)])
+player = Player(10, 50, 40, 40, 3, pygame.K_a , pygame.K_d, True, False, "right", [player_img,pygame.transform.flip(player_img, True, False)], 1, False)
 enemy1_img = pygame.image.load("enemy_img.png")
 enemy1 = Enemy(450, 200, 40, 40, enemy1_img, 5 , False, True)
 
@@ -175,11 +190,6 @@ while game:
 
 
     wind.blit(bk, (0,0))
-    if player.jumping == True:
-        tamer += 1
-    if tamer >= 600:
-        player.jumping = False
-        tamer = 0
     if pygame.sprite.spritecollide(enemy1, blocks_inviss, False):
         if enemy1.go_right == True:
             enemy1.go_left = True
@@ -194,7 +204,7 @@ while game:
     for block in blocks:
             block.draw()
             if player.collide(block):
-                player.jumping = False
+                player.gravition = False
             else:
                 player.gravition = True
     if player.rect.y >= 900:
@@ -226,8 +236,6 @@ while game:
                 enemy1.go_right = False
             if event.key == pygame.K_SPACE:
                 if not player.jumping:
-                    for i in range(50):
-                        player.rect.y -= 2
                     player.jumping = True
 
     

@@ -23,9 +23,6 @@ player_anim = "right"
 
 
 
-left_score = 0
-right_score = 0
-
 
 
 class GameSprite(pygame.sprite.Sprite):
@@ -39,18 +36,17 @@ class GameSprite(pygame.sprite.Sprite):
 
 
 class Player(GameSprite):
-    def __init__(self, x, y, w, h, speed, go_left,go_right, gravition, jumping, player_anim, images, jump_count, can_jump):
+    def __init__(self, x, y, w, h, speed, go_left,go_right,jumping, player_anim, images):
         super().__init__(x, y, w, h, images[0])
         player_group.add(self)
         self.rect = pygame.Rect(x, y, w, h)
         self.speed = speed
         self.go_left = go_left
         self.go_right = go_right
-        self.gravition = gravition
+        self.gravition = "down"
         self.jumping = jumping
         self.player_anim = player_anim
         self.images = []
-        self.jumping = False
         self.jump_count = 0
         self.can_jump = False
         for i in images:
@@ -72,7 +68,6 @@ class Player(GameSprite):
             if self.collide(block):
                 self.rect.x = x
                 self.rect.y = y
-                self.gravition = False
                 return
     def collide(self, block):                                                               
         if self.rect.colliderect(block.rect):
@@ -91,19 +86,22 @@ class Player(GameSprite):
         x = self.rect.x
         y = self.rect.y
         for block in blocks:
-            if player.collide(block):
-                player.gravition = False
-                player.jumping = False
+            if self.collide(block):
+                self.gravition = "none"
+                self.jumping = False
                 break
             else:
-                player.gravition = True
-        print(self.gravition)
-        if not self.jumping:
-            if self.gravition == True:
+                if self.gravition == "none":
+                    self.gravition = "down"
+        #print(self.gravition)
+        print(self.jumping)
+        if self.jumping == False:
+            if self.gravition == "down":
                 self.rect.y += self.speed
-        else:
-            self.rect.y -= 1
-            self.jump_count -= 35
+        if self.jumping == True:
+            if self.gravition == "up":
+                self.rect.y -= self.speed
+
         for block in blocks:
             if self.collide(block):
                 self.rect.x = x
@@ -117,7 +115,6 @@ class Player(GameSprite):
             #self.jump -= 1
         #else:
             #if k[pygame.K_SPACE]:
-
 class Enemy(GameSprite):
     def __init__(self, x, y, w, h, image, speed, go_right, go_left):
         super().__init__(x, y, w, h, image)
@@ -135,7 +132,7 @@ class Enemy(GameSprite):
 
 player_img = pygame.image.load("player_l1.png")
 
-player = Player(10, 50, 40, 40, 3, pygame.K_a , pygame.K_d, True, False, "right", [player_img,pygame.transform.flip(player_img, True, False)], 1, False)
+player = Player(10, 50, 40, 40, 3, pygame.K_a , pygame.K_d, False, "right", [player_img,pygame.transform.flip(player_img, True, False)])
 enemy1_img = pygame.image.load("enemy_img.png")
 enemy1 = Enemy(450, 200, 40, 40, enemy1_img, 5 , False, True)
 
@@ -204,9 +201,9 @@ while game:
     for block in blocks:
             block.draw()
             if player.collide(block):
-                player.gravition = False
+                player.gravition = "none"
             else:
-                player.gravition = True
+                player.gravition = "down"
     if player.rect.y >= 900:
         finish = True
     if not finish:
@@ -237,6 +234,7 @@ while game:
             if event.key == pygame.K_SPACE:
                 if not player.jumping:
                     player.jumping = True
+                    player.gravition = "up"
 
     
 

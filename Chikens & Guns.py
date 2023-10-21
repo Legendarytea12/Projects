@@ -168,7 +168,7 @@ if level == 1:
         y += block_size_y
         x = 0
 if level == 2:
-    for bl in map1:
+    for bl in map2:
         for l in bl:
             if l == "2":
                 block_gold = GameSprite(x ,y , block_size_x, block_size_y, gold)
@@ -206,9 +206,9 @@ for block_gold in blocks_gold:
     block_group_gold.add(block_gold)
 while game:
 
-
+    print(level)
     wind.blit(bk, (0,0))
-    if player.collide(blocks_gold):
+    if pygame.sprite.spritecollide(player, blocks_gold, False):
         print("hello")
     if player.player_anim == "right":
         player.image = player.images[0]
@@ -276,6 +276,7 @@ while game:
             else:
                 if event.key == pygame.K_SPACE:
                     if not player.jumping and player.can_jump:
+                        level += 1
                         player.start_jump()
 
 

@@ -11,7 +11,7 @@ pygame.init()
 
 FPS = 60
 pygame.display.set_caption("Ping-Pong")
-wind = pygame.display.set_mode((1500, 800))
+wind = pygame.display.set_mode((1200, 700))
 
 clock = pygame.time.Clock()
 
@@ -21,7 +21,9 @@ bk = pygame.image.load("Фон.png")
 player_group = pygame.sprite.Group()
 player_anim = "right"
 
-
+music_back = pygame.mixer.Sound("background.ogg")
+music_back.set_volume(0.3)
+music_back.play(-1)
 
 
 
@@ -93,9 +95,9 @@ class Player(GameSprite):
             else:
                 if self.gravition == "none":
                     self.gravition = "down"
-        #print(self.gravition)
+        # print(self.gravity)
         print(self.jumping)
-        if self.jumping == False:
+        if not self.jumping:
             if self.gravition == "down":
                 self.rect.y += self.speed
         if self.jumping == True:
@@ -107,14 +109,12 @@ class Player(GameSprite):
                 self.rect.x = x
                 self.rect.y = y
                 return
-    #def jumping(self):
-        #k = pygame.key.get_pressed()
-        #if self.jump >= 1:
-            #self.rect.y -= 5
-            #self.gravition = False
-            #self.jump -= 1
-        #else:
-            #if k[pygame.K_SPACE]:
+            
+
+
+
+
+            
 class Enemy(GameSprite):
     def __init__(self, x, y, w, h, image, speed, go_right, go_left):
         super().__init__(x, y, w, h, image)
@@ -136,9 +136,10 @@ player = Player(10, 50, 40, 40, 3, pygame.K_a , pygame.K_d, False, "right", [pla
 enemy1_img = pygame.image.load("enemy_img.png")
 enemy1 = Enemy(450, 200, 40, 40, enemy1_img, 5 , False, True)
 
-gold = pygame.image.load("дёрн.png")
+gold = pygame.image.load("chest.png")
 kmn = pygame.image.load("дёрн.png")
 invisible_block = pygame.image.load("invis_img.png")
+blocks_gold = []
 blocks = []
 blocks_inviss = []
 block_size_y = 30
@@ -175,14 +176,15 @@ road2 = 2
 
  
 font = pygame.font.SysFont("Arial", 32)
+block_group_gold = pygame.sprite.Group()
 block_group_in = pygame.sprite.Group()
 block_group = pygame.sprite.Group()
 for block in blocks:
     block_group.add(block)
 for block_invis in blocks_inviss:
     block_group_in.add(block_invis)
-
-
+for block_gold in blocks_gold:
+    block_group_gold.add(block_gold)
 while game:
 
 
@@ -194,6 +196,11 @@ while game:
         else:
             enemy1.go_left = False
             enemy1.go_right = True
+    if pygame.sprite.spritecollide(player, blocks_gold, False):
+        finish = True
+    #if pygame.sprite.spritecollide(enemy1, player, False):
+        #player.rect.y = 900
+        #finish = True
     if player.player_anim == "right":
         player.image = player.images[0]
     if player.player_anim == "left":
@@ -204,8 +211,14 @@ while game:
                 player.gravition = "none"
             else:
                 player.gravition = "down"
-    if player.rect.y >= 900:
+    if player.rect.y >= 800:
+        music_over = pygame.mixer.Sound("GameOver.ogg")
+        music_over.set_volume(0.5)
+        music_over.play()
+        player.rect.y -= 100
         finish = True
+        game_over = font.render('Game Over', True, (255,255,255))
+        wind.blit(game_over, (600, 0))
     if not finish:
         enemy1.move()
         player.move()
@@ -214,6 +227,10 @@ while game:
     enemy1.draw()
     player.draw()
     block.draw()
+    if player.rect.y <= 700:
+        if finish == True:
+            game_paused = font.render('Game Paused', True, (255,255,255))
+            wind.blit(game_paused, (600, 0))
     if finish == True:
         game_over = font.render('Game Over', True, (255,255,255))
         wind.blit(game_over, (600, 0))
@@ -223,14 +240,16 @@ while game:
         if event.type == pygame.MOUSEBUTTONDOWN:
             x, y = event.pos
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_RETURN:
-                finish = False
-                enemy1.go_left = True
-                enemy1.go_right = False
-            if event.key == pygame.K_1:
-                finish = True
-                enemy1.go_left = True
-                enemy1.go_right = False
+            if finish == True:
+                if event.key == pygame.K_RETURN:
+                    finish = False
+                    player.jumping = False
+                    enemy1.go_left = True
+                    enemy1.go_right = False
+                    player.rect.y = 50
+                    player.rect.x = 10
+                    enemy1.rect.y = 200
+                    enemy1.rect.x = 450
             if event.key == pygame.K_SPACE:
                 if not player.jumping:
                     player.jumping = True
